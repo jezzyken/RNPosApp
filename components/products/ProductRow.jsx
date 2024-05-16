@@ -13,10 +13,6 @@ import useFetch from '../../hook/useFetch';
 const ProductRow = () => {
   const {data, isLoading, error} = useFetch();
 
-  console.log(data)
-  console.log(error)
-
-
   return (
     <View View style={styles.container}>
       {isLoading ? (
