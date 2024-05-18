@@ -23,7 +23,6 @@ const screenOptions = {
 };
 
 const BottomTabNavigation = () => {
-  console.log('first');
   return (
     <Tab.Navigator screenOptions={screenOptions}>
       <Tab.Screen

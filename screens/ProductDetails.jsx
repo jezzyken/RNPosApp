@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
-    color: '#000000', // Text color (black)
+    color: '#000000',
   },
   price: {
     fontSize: 14,
