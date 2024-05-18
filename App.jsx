@@ -4,6 +4,8 @@ import {createStackNavigator} from '@react-navigation/stack';
 import BottomTabNavigation from './navigation/BottomTabNavigation';
 import ProductDetails from './screens/ProductDetails';
 import Cart from './screens/Cart';
+import Confirmation from './screens/Confirmation';
+
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
 import {PermissionsAndroid} from 'react-native';
 import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
@@ -67,6 +69,11 @@ const App = () => {
         <Stack.Screen
           name="Cart"
           component={Cart}
+          options={{headerShown: false}}
+        />
+         <Stack.Screen
+          name="Confirmation"
+          component={Confirmation}
           options={{headerShown: false}}
         />
       </Stack.Navigator>

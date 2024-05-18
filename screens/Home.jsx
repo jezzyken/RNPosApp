@@ -96,8 +96,8 @@ const styles = StyleSheet.create({
   },
   cartCountBadge: {
     position: 'absolute',
-    top: 1,
-    right: 5,
+    top: -5,
+    right: -5,
     backgroundColor: 'red',
     borderRadius: 10,
     width: 15,

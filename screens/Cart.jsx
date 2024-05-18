@@ -1,9 +1,10 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, FlatList, StyleSheet, Button} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import {useNavigation} from '@react-navigation/native';
 const CartScreen = () => {
   const [cartItems, setCartItems] = useState([]);
+  const navigation = useNavigation();
 
   useEffect(() => {
     loadCartItems();
@@ -23,22 +24,22 @@ const CartScreen = () => {
   const clearCart = async () => {
     try {
       await AsyncStorage.removeItem('@cart_items');
-      console.log("Cart cleared");
+      console.log('Cart cleared');
       setCartItems([]);
     } catch (error) {
-      console.error("Error clearing cart:", error);
+      console.error('Error clearing cart:', error);
     }
   };
 
   const calculateTotalPrice = () => {
     let totalPrice = 0;
-    cartItems.forEach((item) => {
+    cartItems.forEach(item => {
       totalPrice += item.price * item.quantity;
     });
     return totalPrice;
   };
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({item}) => (
     <View style={styles.cartItem}>
       <Text>{item.name}</Text>
       <Text>{item.variant}</Text>
@@ -50,7 +51,7 @@ const CartScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Button title="Clear Cart" onPress={clearCart}/>
+      <Button title="Clear Cart" onPress={clearCart} />
 
       <Text style={styles.title}>Cart</Text>
       <FlatList
@@ -59,8 +60,13 @@ const CartScreen = () => {
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={styles.cartList}
       />
-      <Text style={styles.totalPrice}>Total Price: Php {calculateTotalPrice()}</Text>
-      <Button title="proceed" onPress={clearCart}/>
+      <Text style={styles.totalPrice}>
+        Total Price: Php {calculateTotalPrice()}
+      </Text>
+      <Button
+        title="proceed"
+        onPress={() => navigation.navigate('Confirmation',{ cartItems: JSON.stringify(cartItems),  totalPrice: calculateTotalPrice()  })}
+      />
     </View>
   );
 };
