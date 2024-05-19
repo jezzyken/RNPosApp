@@ -5,20 +5,17 @@ import {
   ColumnAlignment,
   COMMANDS,
 } from 'react-native-thermal-receipt-printer-image-qr';
-import { useNavigation } from '@react-navigation/native';
-
+import {useNavigation} from '@react-navigation/native';
 
 const Complete = ({route}) => {
   const {data} = route.params;
   const navigation = useNavigation();
 
-  console.log(data);
-
   useEffect(() => {
+    
     handleConnectSelectedPrinter();
-    handlePrint();
 
-    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+    const unsubscribe = navigation.addListener('beforeRemove', e => {
       e.preventDefault();
     });
 
@@ -26,11 +23,16 @@ const Complete = ({route}) => {
   }, []);
 
   const handleConnectSelectedPrinter = async () => {
-    try {
-      await BLEPrinter.connectPrinter('86:67:7A:CE:B4:A1' || '');
-    } catch (err) {
-      console.warn(err);
-    }
+    await BLEPrinter.init();
+    const connect = async () => {
+      try {
+        await BLEPrinter.connectPrinter('86:67:7A:CE:B4:A1' || '');
+        await handlePrint();
+      } catch (err) {
+        console.warn(err);
+      }
+    };
+    connect();
   };
 
   const handlePrint = async () => {
@@ -56,11 +58,15 @@ const Complete = ({route}) => {
 
       const header = ['Items', 'Qty', 'Price'];
 
-      BLEPrinter.printText(`${CENTER}--------------------------------${CENTER}`);
+      BLEPrinter.printText(
+        `${CENTER}--------------------------------${CENTER}`,
+      );
       BLEPrinter.printColumnsText(header, columnWidth, columnAlignment, [
         `${BOLD_ON}`,
       ]);
-      BLEPrinter.printText(`${CENTER}--------------------------------${CENTER}`);
+      BLEPrinter.printText(
+        `${CENTER}--------------------------------${CENTER}`,
+      );
       for (const order of orderList) {
         BLEPrinter.printColumnsText(order, columnWidth, columnAlignment, [
           `${BOLD_OFF}`,
@@ -83,7 +89,9 @@ const Complete = ({route}) => {
       </View>
       <Text style={styles.title}>ORDER COMPLETED!</Text>
       <Text style={styles.amount}>Paid $450</Text>
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Home")}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('Home')}>
         <Text style={styles.buttonText}>View Receipt</Text>
       </TouchableOpacity>
     </View>
