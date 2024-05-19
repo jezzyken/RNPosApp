@@ -9,8 +9,12 @@ import {
 } from 'react-native';
 import {RadioButton} from 'react-native-paper';
 import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const ConfirmationScreen = ({route}) => {
+  const navigation = useNavigation();
   const {cartItems, totalPrice} = route.params;
   const parsedCartItems = JSON.parse(cartItems);
   const [delivery, setDelivery] = useState('yes');
@@ -54,7 +58,8 @@ const ConfirmationScreen = ({route}) => {
         'http://192.168.1.6:3001/api/v1/node/sales',
         data,
       );
-      console.log('Order saved successfully:', response.data);
+      await AsyncStorage.removeItem('@cart_items');
+      navigation.navigate("Complete", {data})
     } catch (error) {
       console.error('Error saving order:', error);
     }
