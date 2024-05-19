@@ -1,46 +1,70 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { RadioButton } from 'react-native-paper';
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from 'react-native';
+import {RadioButton} from 'react-native-paper';
+import axios from 'axios';
 
 const ConfirmationScreen = ({route}) => {
-  const { cartItems, totalPrice  } = route.params;
+  const {cartItems, totalPrice} = route.params;
   const parsedCartItems = JSON.parse(cartItems);
   const [delivery, setDelivery] = useState('yes');
   const [customerName, setCustomerName] = useState('');
-  const [contactName, setContactName] = useState('');
-  const [contactNumber, setContactNumber] = useState('');
-  const [deliveryDateTime, setDeliveryDateTime] = useState('');
+  const [recipientName, setRecipientName] = useState('');
+  const [contactNo, setContactNo] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState('');
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
-  const [cash, setCash] = useState('');
-  const totalItems = parsedCartItems.length; // Example value
-  // const totalItems = 2 // Example value
-  const totalAmount = totalPrice
-  const handleConfirmOrder = () => {
-    // Handle order confirmation logic
-    console.log('Order confirmed');
-    console.log('Delivery:', delivery);
-    console.log('items:', parsedCartItems);
+  const [paidAmount, setPaidAmount] = useState('');
+  const totalItems = parsedCartItems.length;
+  const totalSalesAmount = totalPrice;
+  let deliveryInfo = {};
 
+  const handleConfirmOrder = async () => {
+    const hasDelivery = delivery === 'yes' ? true : false;
 
-    if (delivery === 'yes') {
-      console.log('Address:', address);
-      console.log('Notes:', notes);
-      console.log('Customer Name:', customerName);
-      console.log('Contact Name:', contactName);
-      console.log('Contact Number:', contactNumber);
-      console.log('Delivery Date Time:', deliveryDateTime);
+    if (hasDelivery) {
+      deliveryInfo = {
+        address,
+        notes,
+        recipientName,
+        contactNo,
+        deliveryDate,
+      };
     }
-    console.log('Cash:', cash);
-    console.log('Total Items:', totalItems);
-    console.log('Total Amount:', totalAmount);
+
+    const data = {
+      customerName,
+      paidAmount,
+      change: paidAmount - totalSalesAmount,
+      totalSalesAmount,
+      totalItems,
+      hasDelivery,
+      saleItems: parsedCartItems,
+      delivery: deliveryInfo,
+    };
+
+    try {
+      const response = await axios.post(
+        'http://192.168.1.6:3001/api/v1/node/sales',
+        data,
+      );
+      console.log('Order saved successfully:', response.data);
+    } catch (error) {
+      console.error('Error saving order:', error);
+    }
   };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.formGroup}>
         <Text style={styles.label}>Customer Name</Text>
-        <TextInput 
+        <TextInput
           style={styles.input}
           placeholder="Name"
           value={customerName}
@@ -69,33 +93,33 @@ const ConfirmationScreen = ({route}) => {
       {delivery === 'yes' && (
         <View style={styles.formGroup}>
           <Text style={styles.label}>Delivery Info</Text>
-          <TextInput 
+          <TextInput
             style={styles.input}
             placeholder="Name"
-            value={contactName}
-            onChangeText={setContactName}
+            value={recipientName}
+            onChangeText={setRecipientName}
           />
           <View style={styles.row}>
-            <TextInput 
+            <TextInput
               style={[styles.input, styles.halfInput]}
               placeholder="Contact"
-              value={contactNumber}
-              onChangeText={setContactNumber}
+              value={contactNo}
+              onChangeText={setContactNo}
             />
-            <TextInput 
+            <TextInput
               style={[styles.input, styles.halfInput]}
               placeholder="Datetime"
-              value={deliveryDateTime}
-              onChangeText={setDeliveryDateTime}
+              value={deliveryDate}
+              onChangeText={setDeliveryDate}
             />
           </View>
-          <TextInput 
+          <TextInput
             style={styles.input}
             placeholder="Address"
             value={address}
             onChangeText={setAddress}
           />
-          <TextInput 
+          <TextInput
             style={styles.input}
             placeholder="Notes"
             value={notes}
@@ -107,25 +131,29 @@ const ConfirmationScreen = ({route}) => {
       <View style={styles.formGroup}>
         <Text style={styles.label}>Payment Info :</Text>
         <Text style={styles.infoText}>Total Items: {totalItems}</Text>
-        <Text style={styles.infoText}>Total Amount: P{totalAmount.toFixed(2)}</Text>
+        <Text style={styles.infoText}>
+          Total Amount: P{totalSalesAmount.toFixed(2)}
+        </Text>
         <View style={styles.row}>
-          <TextInput 
+          <TextInput
             style={[styles.input, styles.halfInput]}
-            placeholder="Cash"
-            value={cash}
-            onChangeText={setCash}
+            placeholder="PaidAmount"
+            value={paidAmount}
+            onChangeText={setPaidAmount}
             keyboardType="numeric"
           />
-          <TextInput 
+          <TextInput
             style={[styles.input, styles.halfInput]}
             placeholder="Change"
-            value={(cash - totalAmount).toFixed(2)}
+            value={(paidAmount - totalSalesAmount).toFixed(2)}
             editable={false}
           />
         </View>
       </View>
 
-      <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmOrder}>
+      <TouchableOpacity
+        style={styles.confirmButton}
+        onPress={handleConfirmOrder}>
         <Text style={styles.confirmButtonText}>CONFIRM ORDER</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -168,8 +196,7 @@ const styles = StyleSheet.create({
   },
   radioLabel: {
     fontSize: 16,
-    marginRight: 
-    20,
+    marginRight: 20,
   },
   infoText: {
     fontSize: 16,
