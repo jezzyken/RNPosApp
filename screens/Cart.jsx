@@ -1,5 +1,12 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, FlatList, StyleSheet, Button} from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Button,
+  TouchableOpacity,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
 const CartScreen = () => {
@@ -41,19 +48,20 @@ const CartScreen = () => {
 
   const renderItem = ({item}) => (
     <View style={styles.cartItem}>
-      <Text>{item.name}</Text>
-      <Text>{item.variant}</Text>
-      <Text>Price per item: {item.price}</Text>
-      <Text>Quantity: {item.quantity}</Text>
-      <Text>Subtotal: {item.price * item.quantity}</Text>
+      <Text style={styles.items}>{item.name}</Text>
+      <Text style={styles.items}>{item.variant}</Text>
+      <Text style={styles.items}>Price per item: {item.price}</Text>
+      <Text style={styles.items}>Quantity: {item.quantity}</Text>
+      <Text style={styles.items}>Subtotal: {item.price * item.quantity}</Text>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <Button title="Clear Cart" onPress={clearCart} />
+      <TouchableOpacity style={styles.addBtn} onPress={clearCart}>
+        <Text style={styles.btnText}>Clear Cart</Text>
+      </TouchableOpacity>
 
-      <Text style={styles.title}>Cart</Text>
       <FlatList
         data={cartItems}
         renderItem={renderItem}
@@ -63,10 +71,17 @@ const CartScreen = () => {
       <Text style={styles.totalPrice}>
         Total Price: Php {calculateTotalPrice()}
       </Text>
-      <Button
-        title="proceed"
-        onPress={() => navigation.navigate('Confirmation',{ cartItems: JSON.stringify(cartItems),  totalPrice: calculateTotalPrice()  })}
-      />
+
+      <TouchableOpacity style={styles.addBtn}   onPress={() =>
+          navigation.navigate('Confirmation', {
+            cartItems: JSON.stringify(cartItems),
+            totalPrice: calculateTotalPrice(),
+          })
+        }>
+        <Text style={styles.btnText}>proceed</Text>
+      </TouchableOpacity>
+
+
     </View>
   );
 };
@@ -91,11 +106,33 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,
+    marginTop: 10,
+    color: 'red',
+  },
+  items: {
+    color: '#000',
   },
   totalPrice: {
+    color: '#000',
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 10,
+    marginBottom: 10,
+  },
+
+  addBtn: {
+    borderRadius: 8,
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FF5733',
+  },
+
+  btnText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
 });
 
