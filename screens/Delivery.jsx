@@ -10,7 +10,7 @@ const Delivery = ({ navigation }) => {
 
   const fetchDeliveries = async () => {
     try {
-      const response = await axios.get('http://192.168.1.6:3001/api/v1/node/deliveries');
+      const response = await axios.get('https://inventory-epos-app.onrender.com/api/v1/node/deliveries');
       setDeliveries(response.data.result);
       setLoading(false);
     } catch (error) {

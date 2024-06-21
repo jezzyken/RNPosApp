@@ -1,9 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, Button, TouchableOpacity, TouchableWithoutFeedback, StyleSheet, Image, Animated, Easing, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, {useState, useEffect} from 'react';
+import {
+  Modal,
+  View,
+  Text,
+  Button,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  StyleSheet,
+  Image,
+  Animated,
+  Easing,
+  ScrollView,
+} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const ProductCardView = ({ item, fetchCartCount  }) => {
+const ProductCardView = ({item, fetchCartCount}) => {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -16,7 +28,7 @@ const ProductCardView = ({ item, fetchCartCount  }) => {
 
   useEffect(() => {
     if (selectedItem && selectedItem.prices.length > 0) {
-      setSelectedVariant(selectedItem.prices[0].variant.name); 
+      setSelectedVariant(selectedItem.prices[0].variant.name);
       setSelectedPrice(selectedItem.prices[0].salePrice);
     }
   }, [selectedItem]);
@@ -34,9 +46,9 @@ const ProductCardView = ({ item, fetchCartCount  }) => {
     };
 
     fetchCartItems();
-  }, []); 
+  }, []);
 
-  const saveCartItems = async (items) => {
+  const saveCartItems = async items => {
     try {
       await AsyncStorage.setItem('@cart_items', JSON.stringify(items));
     } catch (error) {
@@ -101,7 +113,7 @@ const ProductCardView = ({ item, fetchCartCount  }) => {
         }
 
         const existingItemIndex = storedCartItems.findIndex(
-          (item) => item.id === newItem.id && item.variant === newItem.variant
+          item => item.id === newItem.id && item.variant === newItem.variant,
         );
 
         if (existingItemIndex !== -1) {
@@ -115,7 +127,7 @@ const ProductCardView = ({ item, fetchCartCount  }) => {
 
         setCurrentCartItem(null);
         closeModal();
-        fetchCartCount(); 
+        fetchCartCount();
       } catch (error) {
         console.error('Error updating cart items in AsyncStorage:', error);
       }
@@ -123,50 +135,85 @@ const ProductCardView = ({ item, fetchCartCount  }) => {
   };
 
   return (
-    <TouchableOpacity onPress={() => navigation.navigate("ProductDetails", { item })}>
+    <TouchableOpacity
+      onPress={() => navigation.navigate('ProductDetails', {item})}>
       <View style={styles.item}>
-        <Image source={{ uri: item.image }} style={styles.image} />
+        <Image source={{uri: item.image}} style={styles.image} />
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.price}>{item.description}</Text>
-        <Button title="Press Me" onPress={handleButtonPress} />
+
+        <TouchableOpacity style={styles.addBtn} onPress={handleButtonPress}>
+          <Text style={styles.btnText}>add</Text>
+        </TouchableOpacity>
 
         <Modal
           transparent={true}
           visible={modalVisible}
           onRequestClose={closeModal}
-          animationType="none"
-        >
+          animationType="none">
           <TouchableWithoutFeedback onPress={closeModal}>
             <View style={styles.modalBackground}>
-              <Animated.View style={[styles.modalContainer, { transform: [{ translateY: slideAnim }] }]}>
+              <Animated.View
+                style={[
+                  styles.modalContainer,
+                  {transform: [{translateY: slideAnim}]},
+                ]}>
                 {selectedItem && (
                   <>
                     <Text style={styles.modalTitle}>{selectedItem.name}</Text>
-                    <ScrollView horizontal={true} contentContainerStyle={styles.variantButtonContainer}>
+                    <ScrollView
+                      horizontal={true}
+                      contentContainerStyle={styles.variantButtonContainer}>
                       {selectedItem.prices.map((price, index) => (
-                        <TouchableOpacity 
-                          key={index} 
-                          style={[styles.variantButton, selectedVariant === price.variant.name && styles.variantButtonSelected]} 
-                          onPress={() => handleVariantPress(price.variant.name, price.salePrice)}
-                        >
-                          <Text style={styles.variantButtonText}>{price.variant.name}</Text>
+                        <TouchableOpacity
+                          key={index}
+                          style={[
+                            styles.variantButton,
+                            selectedVariant === price.variant.name &&
+                              styles.variantButtonSelected,
+                          ]}
+                          onPress={() =>
+                            handleVariantPress(
+                              price.variant.name,
+                              price.salePrice,
+                            )
+                          }>
+                          <Text style={styles.variantButtonText}>
+                            {price.variant.name}
+                          </Text>
                         </TouchableOpacity>
                       ))}
                     </ScrollView>
-                    <View style={styles.quantityContainer}>
-                      <Text style={styles.quantityLabel}>Quantity:</Text>
-                      <TouchableOpacity style={styles.quantityButton} onPress={handleDecrement}>
-                        <Text style={styles.quantityButtonText}>-</Text>
-                      </TouchableOpacity>
-                      <Text style={styles.quantity}>{quantity}</Text>
-                      <TouchableOpacity style={styles.quantityButton} onPress={handleIncrement}>
-                        <Text style={styles.quantityButtonText}>+</Text>
-                      </TouchableOpacity>
+
+                    <View style={styles.testContainer}>
+                      <View style={styles.quantityContainer}>
+                        <Text style={styles.quantityLabel}>Quantity:</Text>
+                        <TouchableOpacity
+                          style={styles.quantityButton}
+                          onPress={handleDecrement}>
+                          <Text style={styles.quantityButtonText}>-</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.quantity}>{quantity}</Text>
+                        <TouchableOpacity
+                          style={styles.quantityButton}
+                          onPress={handleIncrement}>
+                          <Text style={styles.quantityButtonText}>+</Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      <View>
+                        <Text style={styles.selectedPrice}>
+                          Php {selectedPrice}
+                        </Text>
+                      </View>
                     </View>
-                    <Text style={styles.selectedPrice}>Php {selectedPrice}</Text>
                   </>
                 )}
-                 <Button title="Confirm" onPress={handleConfirm} />
+
+                <TouchableOpacity style={styles.addBtn} onPress={handleConfirm}>
+                  <Text style={styles.btnText}>Confirm</Text>
+                </TouchableOpacity>
+
               </Animated.View>
             </View>
           </TouchableWithoutFeedback>
@@ -176,13 +223,20 @@ const ProductCardView = ({ item, fetchCartCount  }) => {
   );
 };
 const styles = StyleSheet.create({
+  testContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
   item: {
     margin: 10,
     padding: 10,
     backgroundColor: '#fff',
     borderRadius: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
@@ -193,6 +247,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   name: {
+    color: '#000',
     fontSize: 18,
     fontWeight: 'bold',
     marginVertical: 5,
@@ -217,6 +272,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
+    color: '#000',
   },
   modalImage: {
     width: '100%',
@@ -243,7 +299,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   variantButtonSelected: {
-    backgroundColor: '#0056b3', 
+    backgroundColor: '#0056b3',
   },
   variantButtonText: {
     color: '#fff',
@@ -258,25 +314,44 @@ const styles = StyleSheet.create({
   quantityLabel: {
     fontSize: 16,
     marginRight: 10,
+    color: '#000',
   },
   quantityButton: {
     backgroundColor: '#007bff',
-    borderRadius: 20,
+    borderRadius: 50,
     padding: 5,
+    width: 35,
   },
   quantityButtonText: {
-    color: '#fff',
+    alignSelf: 'center',
     fontSize: 20,
     fontWeight: 'bold',
+    color: '#fff',
   },
   quantity: {
     fontSize: 16,
     marginHorizontal: 10,
+    color: '#000',
   },
   selectedPrice: {
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 10,
+    color: 'green',
+  },
+  addBtn: {
+    borderRadius: 8,
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FF5733',
+  },
+
+  btnText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
 });
 

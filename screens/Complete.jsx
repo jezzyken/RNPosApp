@@ -88,11 +88,10 @@ const Complete = ({route}) => {
         <Text style={styles.checkmark}>✔️</Text>
       </View>
       <Text style={styles.title}>ORDER COMPLETED!</Text>
-      <Text style={styles.amount}>Paid $450</Text>
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate('Home')}>
-        <Text style={styles.buttonText}>View Receipt</Text>
+        <Text style={styles.buttonText}>Back to Main</Text>
       </TouchableOpacity>
     </View>
   );

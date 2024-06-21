@@ -9,9 +9,8 @@ import {
 } from 'react-native';
 import {RadioButton} from 'react-native-paper';
 import axios from 'axios';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 
 const ConfirmationScreen = ({route}) => {
   const navigation = useNavigation();
@@ -55,11 +54,11 @@ const ConfirmationScreen = ({route}) => {
 
     try {
       const response = await axios.post(
-        'http://192.168.1.6:3001/api/v1/node/sales',
+        'https://inventory-epos-app.onrender.com/api/v1/node/sales',
         data,
       );
       await AsyncStorage.removeItem('@cart_items');
-      navigation.navigate("Complete", {data})
+      navigation.navigate('Complete', {data});
     } catch (error) {
       console.error('Error saving order:', error);
     }
@@ -74,6 +73,7 @@ const ConfirmationScreen = ({route}) => {
           placeholder="Name"
           value={customerName}
           onChangeText={setCustomerName}
+          placeholderTextColor="#000"
         />
       </View>
 
@@ -103,6 +103,7 @@ const ConfirmationScreen = ({route}) => {
             placeholder="Name"
             value={recipientName}
             onChangeText={setRecipientName}
+            placeholderTextColor="#000"
           />
           <View style={styles.row}>
             <TextInput
@@ -110,12 +111,14 @@ const ConfirmationScreen = ({route}) => {
               placeholder="Contact"
               value={contactNo}
               onChangeText={setContactNo}
+              placeholderTextColor="#000"
             />
             <TextInput
               style={[styles.input, styles.halfInput]}
               placeholder="Datetime"
               value={deliveryDate}
               onChangeText={setDeliveryDate}
+              placeholderTextColor="#000"
             />
           </View>
           <TextInput
@@ -123,12 +126,14 @@ const ConfirmationScreen = ({route}) => {
             placeholder="Address"
             value={address}
             onChangeText={setAddress}
+            placeholderTextColor="#000"
           />
           <TextInput
             style={styles.input}
             placeholder="Notes"
             value={notes}
             onChangeText={setNotes}
+            placeholderTextColor="#000"
           />
         </View>
       )}
@@ -146,12 +151,14 @@ const ConfirmationScreen = ({route}) => {
             value={paidAmount}
             onChangeText={setPaidAmount}
             keyboardType="numeric"
+            placeholderTextColor="#000"
           />
           <TextInput
             style={[styles.input, styles.halfInput]}
             placeholder="Change"
             value={(paidAmount - totalSalesAmount).toFixed(2)}
             editable={false}
+            placeholderTextColor="#000"
           />
         </View>
       </View>
@@ -178,6 +185,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
+    color: '#000',
   },
   input: {
     borderWidth: 1,
@@ -186,6 +194,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginBottom: 10,
+    color: '#000',
   },
   row: {
     flexDirection: 'row',
@@ -194,6 +203,7 @@ const styles = StyleSheet.create({
   halfInput: {
     flex: 1,
     marginRight: 10,
+    color: '#000',
   },
   radioGroup: {
     flexDirection: 'row',
@@ -202,10 +212,12 @@ const styles = StyleSheet.create({
   radioLabel: {
     fontSize: 16,
     marginRight: 20,
+    color: '#000',
   },
   infoText: {
     fontSize: 16,
     marginBottom: 10,
+    color: '#000',
   },
   confirmButton: {
     backgroundColor: '#FF5733',

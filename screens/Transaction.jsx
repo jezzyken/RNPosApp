@@ -8,7 +8,7 @@ const Transaction = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('http://192.168.1.6:3001/api/v1/node/sales')
+    axios.get('https://inventory-epos-app.onrender.com/api/v1/node/sales')
       .then(response => {
         setTransactions(response.data.result);
         setLoading(false);
@@ -50,10 +50,12 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 16,
+    color: '#000'
   },
   amount: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#000'
   },
 });
 
