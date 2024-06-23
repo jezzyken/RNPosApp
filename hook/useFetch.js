@@ -11,7 +11,7 @@ const useFetch = () => {
 
     try {
       const response = await axios.get(
-        'http://192.168.1.6:3001/api/v1/node/products',
+        'https://inventory-epos-app.onrender.com/api/v1/node/products',
       );
       setData(response.data.result);
       setIsLoading(false);
