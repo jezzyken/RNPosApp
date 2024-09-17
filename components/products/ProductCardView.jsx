@@ -19,34 +19,34 @@ const ProductCardView = ({item, fetchCartCount}) => {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [variantName, setSelectedVariantName] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedPrice, setSelectedPrice] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [totalPrice, setTotalPrice] = useState(0);
   const slideAnim = useState(new Animated.Value(300))[0];
   const [cartItems, setCartItems] = useState([]);
-  const [currentCartItem, setCurrentCartItem] = useState(null);
 
   useEffect(() => {
-    if (selectedItem && selectedItem.prices.length > 0) {
-      setSelectedVariant(selectedItem.prices[0].variant.name);
-      setSelectedPrice(selectedItem.prices[0].salePrice);
+    if (selectedItem) {
+      if (selectedItem.variants.length > 0) {
+        setSelectedVariant(selectedItem.variants[0]._id);
+        setSelectedPrice(selectedItem.variants[0].sellingPrice);
+        setTotalPrice(selectedItem.variants[0].sellingPrice * quantity);
+        setSelectedVariantName(selectedItem.variants[0].name);
+      } else {
+        setSelectedVariant(null);
+        setSelectedPrice(selectedItem.sellingPrice);
+        setTotalPrice(selectedItem.sellingPrice * quantity);
+      }
     }
   }, [selectedItem]);
 
   useEffect(() => {
-    const fetchCartItems = async () => {
-      try {
-        const storedCartItems = await AsyncStorage.getItem('@cart_items');
-        if (storedCartItems !== null) {
-          setCartItems(JSON.parse(storedCartItems));
-        }
-      } catch (error) {
-        console.error('Error fetching cart items from AsyncStorage:', error);
-      }
-    };
-
-    fetchCartItems();
-  }, []);
+    if (selectedPrice !== null && quantity > 0) {
+      setTotalPrice(selectedPrice * quantity);
+    }
+  }, [selectedPrice, quantity]);
 
   const saveCartItems = async items => {
     try {
@@ -71,7 +71,9 @@ const ProductCardView = ({item, fetchCartCount}) => {
     setSelectedItem(null);
     setSelectedVariant(null);
     setSelectedPrice(null);
+    setSelectedVariantName(null);
     setQuantity(1);
+    setTotalPrice(0);
     Animated.timing(slideAnim, {
       toValue: 300,
       duration: 300,
@@ -80,52 +82,67 @@ const ProductCardView = ({item, fetchCartCount}) => {
     }).start(() => setModalVisible(false));
   };
 
-  const handleVariantPress = (variant, price) => {
+  const handleVariantPress = (variant, price, name) => {
+    console.log(variant, price, name);
     setSelectedVariant(variant);
-    setSelectedPrice(price);
+    setSelectedVariantName(name);
+    setSelectedPrice(parseFloat(price).toFixed(2)); 
+    setTotalPrice((price * quantity).toFixed(2)); 
   };
 
   const handleIncrement = () => {
-    setQuantity(quantity + 1);
+    setQuantity(prevQuantity => {
+      const newQuantity = prevQuantity + 1;
+      setTotalPrice((selectedPrice * newQuantity).toFixed(2)); 
+      return newQuantity;
+    });
   };
 
   const handleDecrement = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
-    }
+    setQuantity(prevQuantity => {
+      const newQuantity = prevQuantity > 1 ? prevQuantity - 1 : 1;
+      setTotalPrice((selectedPrice * newQuantity).toFixed(2)); 
+      return newQuantity;
+    });
   };
 
   const handleConfirm = async () => {
     if (selectedItem) {
       const newItem = {
-        id: selectedItem._id,
+        product: selectedItem._id,
         name: selectedItem.name,
         variant: selectedVariant,
-        price: selectedPrice,
+        variantName: variantName,
+        price: selectedPrice, // Keep the unit price
         quantity: quantity,
       };
 
       try {
         const jsonValue = await AsyncStorage.getItem('@cart_items');
         let storedCartItems = [];
+
         if (jsonValue !== null) {
           storedCartItems = JSON.parse(jsonValue);
         }
 
         const existingItemIndex = storedCartItems.findIndex(
-          item => item.id === newItem.id && item.variant === newItem.variant,
+          item =>
+            item.product === newItem.product &&
+            item.variant === newItem.variant,
         );
 
         if (existingItemIndex !== -1) {
+          // Item already exists, update quantity and total price
           storedCartItems[existingItemIndex].quantity += quantity;
         } else {
+          // Add new item
           storedCartItems.push(newItem);
         }
 
+        // Save updated cart to AsyncStorage
         setCartItems(storedCartItems);
         await saveCartItems(storedCartItems);
 
-        setCurrentCartItem(null);
         closeModal();
         fetchCartCount();
       } catch (error) {
@@ -138,12 +155,13 @@ const ProductCardView = ({item, fetchCartCount}) => {
     <TouchableOpacity
       onPress={() => navigation.navigate('ProductDetails', {item})}>
       <View style={styles.item}>
-        <Image source={{uri: item.image}} style={styles.image} />
+        <View style={styles.imageContainer}>
+          <Image source={{uri: item.image}} style={styles.image} />
+        </View>
         <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.price}>{item.description}</Text>
-
+        <Text style={styles.price}>Price: {parseFloat(item.sellingPrice).toFixed(2)}</Text> 
         <TouchableOpacity style={styles.addBtn} onPress={handleButtonPress}>
-          <Text style={styles.btnText}>add</Text>
+          <Text style={styles.btnText}>Add to Cart</Text>
         </TouchableOpacity>
 
         <Modal
@@ -161,29 +179,36 @@ const ProductCardView = ({item, fetchCartCount}) => {
                 {selectedItem && (
                   <>
                     <Text style={styles.modalTitle}>{selectedItem.name}</Text>
-                    <ScrollView
-                      horizontal={true}
-                      contentContainerStyle={styles.variantButtonContainer}>
-                      {selectedItem.prices.map((price, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          style={[
-                            styles.variantButton,
-                            selectedVariant === price.variant.name &&
-                              styles.variantButtonSelected,
-                          ]}
-                          onPress={() =>
-                            handleVariantPress(
-                              price.variant.name,
-                              price.salePrice,
-                            )
-                          }>
-                          <Text style={styles.variantButtonText}>
-                            {price.variant.name}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
+                    {selectedItem.variants.length > 0 ? (
+                      <ScrollView
+                        horizontal={true}
+                        contentContainerStyle={styles.variantButtonContainer}>
+                        {selectedItem.variants.map((variant, index) => (
+                          <TouchableOpacity
+                            key={index}
+                            style={[
+                              styles.variantButton,
+                              selectedVariant === variant._id &&
+                                styles.variantButtonSelected,
+                            ]}
+                            onPress={() =>
+                              handleVariantPress(
+                                variant._id,
+                                variant.sellingPrice,
+                                variant.name,
+                              )
+                            }>
+                            <Text style={styles.variantButtonText}>
+                              {variant.name}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    ) : (
+                      <Text style={styles.noVariants}>
+                        No variants available
+                      </Text>
+                    )}
 
                     <View style={styles.testContainer}>
                       <View style={styles.quantityContainer}>
@@ -202,9 +227,9 @@ const ProductCardView = ({item, fetchCartCount}) => {
                       </View>
 
                       <View>
-                        <Text style={styles.selectedPrice}>
-                          Php {selectedPrice}
-                        </Text>
+                      <Text style={styles.selectedPrice}>
+                        Total Price: {parseFloat(totalPrice).toFixed(2)}
+                      </Text>
                       </View>
                     </View>
                   </>
@@ -213,7 +238,6 @@ const ProductCardView = ({item, fetchCartCount}) => {
                 <TouchableOpacity style={styles.addBtn} onPress={handleConfirm}>
                   <Text style={styles.btnText}>Confirm</Text>
                 </TouchableOpacity>
-
               </Animated.View>
             </View>
           </TouchableWithoutFeedback>
@@ -222,17 +246,12 @@ const ProductCardView = ({item, fetchCartCount}) => {
     </TouchableOpacity>
   );
 };
+
 const styles = StyleSheet.create({
-  testContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
   item: {
     margin: 10,
-    padding: 10,
+    marginRight: 2,
+    padding: 5,
     backgroundColor: '#fff',
     borderRadius: 5,
     shadowColor: '#000',
@@ -240,11 +259,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
+    width: 163,
   },
   image: {
     width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+    borderRadius: 5,
+  },
+
+  imageContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
     height: 150,
     borderRadius: 5,
+    overflow: 'hidden',
   },
   name: {
     color: '#000',
@@ -274,84 +304,67 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
   },
-  modalImage: {
-    width: '100%',
-    height: 150,
-    borderRadius: 5,
-    marginVertical: 10,
-  },
-  modalContent: {
-    fontSize: 16,
-    marginVertical: 10,
-  },
   variantButtonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    marginBottom: 10,
+    marginVertical: 10,
   },
   variantButton: {
-    backgroundColor: '#007bff',
-    borderRadius: 20,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    marginVertical: 5,
+    padding: 10,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 5,
     marginRight: 10,
   },
   variantButtonSelected: {
-    backgroundColor: '#0056b3',
+    backgroundColor: '#007BFF',
   },
   variantButtonText: {
-    color: '#fff',
+    color: '#000',
+  },
+  noVariants: {
     fontSize: 16,
-    fontWeight: 'bold',
+    color: '#888',
   },
   quantityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
   },
   quantityLabel: {
     fontSize: 16,
     marginRight: 10,
-    color: '#000',
   },
   quantityButton: {
-    backgroundColor: '#007bff',
-    borderRadius: 50,
-    padding: 5,
-    width: 35,
+    backgroundColor: '#007BFF',
+    borderRadius: 5,
+    padding: 10,
+    marginHorizontal: 5,
   },
   quantityButtonText: {
-    alignSelf: 'center',
-    fontSize: 20,
-    fontWeight: 'bold',
     color: '#fff',
+    fontSize: 18,
   },
   quantity: {
-    fontSize: 16,
+    fontSize: 18,
     marginHorizontal: 10,
-    color: '#000',
+    color: 'red',
   },
   selectedPrice: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginTop: 10,
-    color: 'green',
+    color: 'red',
   },
   addBtn: {
-    borderRadius: 8,
-    paddingVertical: 15,
+    backgroundColor: '#007BFF',
+    padding: 10,
+    borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FF5733',
+    marginVertical: 10,
   },
-
   btnText: {
     color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
+    fontSize: 18,
   },
 });
 

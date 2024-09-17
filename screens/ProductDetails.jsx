@@ -52,7 +52,7 @@ const ProductDetails = () => {
     const connect = async () => {
       try {
         setLoading(true);
-        await BLEPrinter.connectPrinter('86:67:7A:CE:B4:A1' || '');
+        await BLEPrinter.connectPrinter('86:67:7A:60:CE:C7' || '');
       } catch (err) {
         console.warn(err);
       } finally {

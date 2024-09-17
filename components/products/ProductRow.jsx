@@ -24,7 +24,7 @@ const ProductRow = ({fetchCartCount }) => {
           data={data}
           keyExtractor={item => item._id}
           renderItem={({item}) => <ProductCardView item={item} fetchCartCount={fetchCartCount }/>}
-          numColumns={1}
+          numColumns={2}
         />
       )}
     </View>
@@ -35,6 +35,6 @@ export default ProductRow;
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 50
+    marginBottom: 100
   },
 });

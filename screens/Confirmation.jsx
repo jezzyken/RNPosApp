@@ -17,15 +17,15 @@ const ConfirmationScreen = ({route}) => {
   const {cartItems, totalPrice} = route.params;
   const parsedCartItems = JSON.parse(cartItems);
   const [delivery, setDelivery] = useState('yes');
-  const [customerName, setCustomerName] = useState('');
+  const [customer, setCustomerName] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [contactNo, setContactNo] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
-  const [paidAmount, setPaidAmount] = useState('');
+  const [amountReceived, setPaidAmount] = useState('');
   const totalItems = parsedCartItems.length;
-  const totalSalesAmount = totalPrice;
+  const salesTotal = totalPrice;
   let deliveryInfo = {};
 
   const handleConfirmOrder = async () => {
@@ -42,21 +42,23 @@ const ConfirmationScreen = ({route}) => {
     }
 
     const data = {
-      customerName,
-      paidAmount,
-      change: paidAmount - totalSalesAmount,
-      totalSalesAmount,
+      customer,
+      amountReceived,
+      change: amountReceived - salesTotal,
+      salesTotal,
+      grandTotal: salesTotal,
       totalItems,
       hasDelivery,
-      saleItems: parsedCartItems,
+      stocks: parsedCartItems,
       delivery: deliveryInfo,
     };
 
     try {
       const response = await axios.post(
-        'https://inventory-epos-app.onrender.com/api/v1/node/sales',
+        'http://192.168.1.153:3001/api/v1/node/sales',
         data,
       );
+      console.log(response.data)
       await AsyncStorage.removeItem('@cart_items');
       navigation.navigate('Complete', {data});
     } catch (error) {
@@ -71,7 +73,7 @@ const ConfirmationScreen = ({route}) => {
         <TextInput
           style={styles.input}
           placeholder="Name"
-          value={customerName}
+          value={customer}
           onChangeText={setCustomerName}
           placeholderTextColor="#000"
         />
@@ -142,13 +144,13 @@ const ConfirmationScreen = ({route}) => {
         <Text style={styles.label}>Payment Info :</Text>
         <Text style={styles.infoText}>Total Items: {totalItems}</Text>
         <Text style={styles.infoText}>
-          Total Amount: P{totalSalesAmount.toFixed(2)}
+          Total Amount: P{salesTotal.toFixed(2)}
         </Text>
         <View style={styles.row}>
           <TextInput
             style={[styles.input, styles.halfInput]}
             placeholder="PaidAmount"
-            value={paidAmount}
+            value={amountReceived}
             onChangeText={setPaidAmount}
             keyboardType="numeric"
             placeholderTextColor="#000"
@@ -156,7 +158,7 @@ const ConfirmationScreen = ({route}) => {
           <TextInput
             style={[styles.input, styles.halfInput]}
             placeholder="Change"
-            value={(paidAmount - totalSalesAmount).toFixed(2)}
+            value={(amountReceived - salesTotal).toFixed(2)}
             editable={false}
             placeholderTextColor="#000"
           />

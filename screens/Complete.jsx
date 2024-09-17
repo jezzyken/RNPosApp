@@ -12,7 +12,6 @@ const Complete = ({route}) => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    
     handleConnectSelectedPrinter();
 
     const unsubscribe = navigation.addListener('beforeRemove', e => {
@@ -26,7 +25,7 @@ const Complete = ({route}) => {
     await BLEPrinter.init();
     const connect = async () => {
       try {
-        await BLEPrinter.connectPrinter('86:67:7A:CE:B4:A1' || '');
+        await BLEPrinter.connectPrinter('86:67:7A:60:CE:C7' || '');
         await handlePrint();
       } catch (err) {
         console.warn(err);
@@ -40,43 +39,49 @@ const Complete = ({route}) => {
       const BOLD_ON = COMMANDS.TEXT_FORMAT.TXT_BOLD_ON;
       const BOLD_OFF = COMMANDS.TEXT_FORMAT.TXT_BOLD_OFF;
       const CENTER = COMMANDS.TEXT_FORMAT.TXT_ALIGN_CT;
-      const {change, customerName, paidAmount, saleItems, totalSalesAmount} =
-        data;
+      const SMALL_FONT = COMMANDS.TEXT_FORMAT.TXT_SIZE_SMALL;
+      const {change, customer, amountReceived, stocks, salesTotal} = data;
 
-      const orderList = saleItems.map(item => [
-        item.name,
-        item.quantity.toString(),
-        'Php' + item.price,
-      ]);
+      const header = ['Items', 'Qty', 'Price'];
       const columnAlignment = [
         ColumnAlignment.LEFT,
         ColumnAlignment.CENTER,
         ColumnAlignment.RIGHT,
       ];
       const columnWidth = [30 - (7 + 12), 7, 12];
-      BLEPrinter.printText(`Customer: ${customerName}\n`);
 
-      const header = ['Items', 'Qty', 'Price'];
+      const orderList = stocks.map(item => [
+        item.variant
+          ? `${item.name || 'Unknown item'} (${
+              item.variantName || 'Unknown variant'
+            })`
+          : item.name || 'Unknown item',
+        item.quantity?.toString() || '0',
+        'P' + (item.price || 0), 
+        'P' + (item.price || 0) * (item.quantity || 0), 
+      ]);
 
-      BLEPrinter.printText(
-        `${CENTER}--------------------------------${CENTER}`,
-      );
-      BLEPrinter.printColumnsText(header, columnWidth, columnAlignment, [
+      await BLEPrinter.printText(`Customer: ${customer}\n`);
+
+      await BLEPrinter.printColumnsText(header, columnWidth, columnAlignment, [
         `${BOLD_ON}`,
       ]);
-      BLEPrinter.printText(
-        `${CENTER}--------------------------------${CENTER}`,
+
+      await BLEPrinter.printText(
+        `${CENTER}--------------------------------${CENTER}\n`,
       );
+
       for (const order of orderList) {
-        BLEPrinter.printColumnsText(order, columnWidth, columnAlignment, [
+        await BLEPrinter.printColumnsText(order, columnWidth, columnAlignment, [
           `${BOLD_OFF}`,
         ]);
       }
-      BLEPrinter.printText('\n');
-      BLEPrinter.printText(`Total Sales Amount: Php${totalSalesAmount}\n`);
-      BLEPrinter.printText(`Paid Amount: Php${paidAmount}\n`);
-      BLEPrinter.printText(`Change: Php${change}\n`);
-      BLEPrinter.printBill(`${CENTER}Thank you\n`);
+
+      await BLEPrinter.printText('\n');
+      await BLEPrinter.printText(`Total Sales Amount: P${salesTotal}\n`);
+      await BLEPrinter.printText(`Paid Amount: Php${amountReceived}\n`);
+      await BLEPrinter.printText(`Change: Php${change}\n`);
+      await BLEPrinter.printBill(`${CENTER}Thank you\n`);
     } catch (err) {
       console.warn(err);
     }

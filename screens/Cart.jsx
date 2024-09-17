@@ -20,6 +20,7 @@ const CartScreen = () => {
   const loadCartItems = async () => {
     try {
       const jsonValue = await AsyncStorage.getItem('@cart_items');
+      console.log(jsonValue)
       if (jsonValue !== null) {
         setCartItems(JSON.parse(jsonValue));
       }
@@ -48,8 +49,9 @@ const CartScreen = () => {
 
   const renderItem = ({item}) => (
     <View style={styles.cartItem}>
-      <Text style={styles.items}>{item.name}</Text>
-      <Text style={styles.items}>{item.variant}</Text>
+      <Text style={styles.items}>
+        {item.variant ? `${item.name} (${item.variantName})` : item.name}
+      </Text>
       <Text style={styles.items}>Price per item: {item.price}</Text>
       <Text style={styles.items}>Quantity: {item.quantity}</Text>
       <Text style={styles.items}>Subtotal: {item.price * item.quantity}</Text>
