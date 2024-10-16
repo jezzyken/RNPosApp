@@ -1,18 +1,26 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import React, {useState, useEffect, useRef} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Animated} from 'react-native';
 import {
   BLEPrinter,
   ColumnAlignment,
   COMMANDS,
 } from 'react-native-thermal-receipt-printer-image-qr';
 import {useNavigation} from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialIcons'
 
 const Complete = ({route}) => {
   const {data} = route.params;
   const navigation = useNavigation();
+  const scaleAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     handleConnectSelectedPrinter();
+
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 5,
+      useNativeDriver: true,
+    }).start();
 
     const unsubscribe = navigation.addListener('beforeRemove', e => {
       e.preventDefault();
@@ -79,8 +87,8 @@ const Complete = ({route}) => {
 
       await BLEPrinter.printText('\n');
       await BLEPrinter.printText(`Total Sales Amount: P${salesTotal}\n`);
-      await BLEPrinter.printText(`Paid Amount: Php${amountReceived}\n`);
-      await BLEPrinter.printText(`Change: Php${change}\n`);
+      await BLEPrinter.printText(`Paid Amount: P${amountReceived}\n`);
+      await BLEPrinter.printText(`Change: P${change}\n`);
       await BLEPrinter.printBill(`${CENTER}Thank you\n`);
     } catch (err) {
       console.warn(err);
@@ -88,57 +96,86 @@ const Complete = ({route}) => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.iconContainer}>
-        <Text style={styles.checkmark}>✔️</Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#4CAF50" />
+      <View style={styles.content}>
+      <Animated.View style={[styles.iconContainer, { transform: [{ scale: scaleAnim }] }]}>
+          <Icon name="check-circle" size={100} color="#FFFFFF" />
+        </Animated.View>
+        <Text style={styles.title}>Order Completed!</Text>
+        <Text style={styles.subtitle}>Your order has been successfully processed.</Text>
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoText}>Customer: {data.customer}</Text>
+          <Text style={styles.infoText}>Total: ₱{data.salesTotal}</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('Home')}>
+          <Text style={styles.buttonText}>Back to Main Menu</Text>
+        </TouchableOpacity>
       </View>
-      <Text style={styles.title}>ORDER COMPLETED!</Text>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate('Home')}>
-        <Text style={styles.buttonText}>Back to Main</Text>
-      </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#4CAF50',
+  },
+  content: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
     padding: 20,
   },
-  iconContainer: {
-    backgroundColor: '#2ECC71',
-    borderRadius: 50,
-    padding: 20,
+  animation: {
+    width: 200,
+    height: 200,
     marginBottom: 20,
-  },
-  checkmark: {
-    fontSize: 40,
-    color: '#fff',
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#E8F5E9',
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  infoContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 20,
+    marginBottom: 30,
+    width: '100%',
+    alignItems: 'center',
+  },
+  infoText: {
+    fontSize: 16,
+    color: '#333333',
     marginBottom: 10,
   },
-  amount: {
-    fontSize: 20,
-    marginBottom: 20,
-  },
   button: {
-    backgroundColor: '#4A90E2',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    elevation: 3,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#4CAF50',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
+
+  iconContainer: {
+    marginBottom: 20,
+  }
 });
 
 export default Complete;

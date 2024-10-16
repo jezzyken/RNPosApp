@@ -34,7 +34,7 @@ const BottomTabNavigation = () => {
               <MaterialCommunityIcons
                 name={focused ? 'home' : 'home-outline'}
                 size={24}
-                color={focused ? 'red' : 'green'}
+                color={focused ? '#FF5733' : 'gray'}
               />
             );
           },
@@ -49,7 +49,7 @@ const BottomTabNavigation = () => {
               <MaterialCommunityIcons
                 name={focused ? 'card-search' : 'card-search-outline'}
                 size={24}
-                color={focused ? 'red' : 'green'}
+                color={focused ? '#FF5733' : 'gray'}
               />
             );
           },
@@ -64,7 +64,7 @@ const BottomTabNavigation = () => {
               <MaterialCommunityIcons
                 name={focused ? 'clipboard-text' : 'clipboard-text-outline'}
                 size={24}
-                color={focused ? 'red' : 'green'}
+                color={focused ? '#FF5733' : 'gray'}
               />
             );
           },
@@ -79,7 +79,7 @@ const BottomTabNavigation = () => {
               <MaterialCommunityIcons
                 name={focused ? 'truck-delivery' : 'truck-delivery-outline'}
                 size={24}
-                color={focused ? 'red' : 'green'}
+                color={focused ? '#FF5733' : 'gray'}
               />
             );
           },

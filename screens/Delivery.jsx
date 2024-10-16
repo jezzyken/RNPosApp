@@ -1,40 +1,46 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import axios from 'axios';
-import { useFocusEffect } from '@react-navigation/native';
-import { SwipeListView } from 'react-native-swipe-list-view';
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  TextInput,
+} from 'react-native';
 
-const Delivery = ({ navigation }) => {
-  const [deliveries, setDeliveries] = useState([]);
-  const [loading, setLoading] = useState(true);
+import {SwipeListView} from 'react-native-swipe-list-view';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import useFetchDeliveries from '../hook/useFetchDeliveries';
 
-  const fetchDeliveries = async () => {
-    try {
-      const response = await axios.get('https://inventory-epos-app.onrender.com/api/v1/node/deliveries');
-      setDeliveries(response.data.result);
-      setLoading(false);
-    } catch (error) {
-      console.error(error);
-      setLoading(false);
-    }
-  };
+const Delivery = ({navigation}) => {
+  const {deliveries, loading} = useFetchDeliveries();
+  const [searchQuery, setSearchQuery] = useState('');
 
-  useFocusEffect(
-    useCallback(() => {
-      setLoading(true);
-      fetchDeliveries();
-    }, [])
+  const filteredDeliveries = deliveries.filter(
+    item =>
+      item.recipientName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.status?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const renderItem = ({ item, index }) => (
+  const renderItem = ({item}) => (
     <View style={styles.rowFront}>
       <TouchableOpacity
         style={styles.item}
-        onPress={() => navigation.navigate('DeliveryInfo', { delivery: item })}
-      >
-        <Text style={styles.recipient}>{item.recipientName}</Text>
-        <Text style={styles.address}>{item.address}</Text>
-        <Text style={item.status === 'pending' ? styles.pending : styles.delivered}>{item.status}</Text>
+        onPress={() => navigation.navigate('DeliveryInfo', {delivery: item})}>
+        <View style={styles.deliveryInfo}>
+          <View style={styles.textContainer}>
+            <Text style={styles.recipient}>{item.recipientName}</Text>
+            <Text style={styles.address}>{item.address}</Text>
+          </View>
+          <Text
+            style={[
+              styles.status,
+              item.status === 'pending' ? styles.pending : styles.delivered,
+            ]}>
+            {item.status}
+          </Text>
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -43,8 +49,7 @@ const Delivery = ({ navigation }) => {
     <View style={styles.rowBack}>
       <TouchableOpacity
         style={styles.deleteButton}
-        onPress={() => console.log("Delete action")}
-      >
+        onPress={() => console.log('Delete action')}>
         <Text style={styles.deleteText}>Delete</Text>
       </TouchableOpacity>
     </View>
@@ -55,16 +60,35 @@ const Delivery = ({ navigation }) => {
   }
 
   return (
-    <SwipeListView
-      data={deliveries}
-      renderItem={renderItem}
-      keyExtractor={item => item._id.toString()}
-      renderHiddenItem={renderHiddenItem}
-      rightOpenValue={-75}
-      swipeToOpenPercent={0}
-    />
+    <View style={styles.container}>
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchBar}
+          placeholder="Search"
+          placeholderTextColor="gray"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        <MaterialCommunityIcons
+          name="magnify"
+          size={24}
+          color="gray"
+          style={styles.searchIcon}
+        />
+      </View>
+      <SwipeListView
+        data={filteredDeliveries}
+        renderItem={renderItem}
+        keyExtractor={item => item._id.toString()}
+        renderHiddenItem={renderHiddenItem}
+        rightOpenValue={-75}
+        swipeToOpenPercent={0}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>No transactions found</Text>
+        }
+      />
+    </View>
   );
-
 };
 
 const styles = StyleSheet.create({
@@ -73,7 +97,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ccc',
     borderBottomWidth: 1,
     justifyContent: 'center',
-    height: 100,
+    height: 70,
   },
   rowBack: {
     alignItems: 'center',
@@ -85,13 +109,28 @@ const styles = StyleSheet.create({
   item: {
     padding: 20,
   },
+  deliveryInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  textContainer: {
+    flex: 1,
+  },
   recipient: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#000',
   },
   address: {
     fontSize: 14,
     color: '#555',
+  },
+  status: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'right',
+    textTransform: 'capitalize',
   },
   pending: {
     color: 'orange',
@@ -110,6 +149,31 @@ const styles = StyleSheet.create({
   deleteText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
+    color: 'gray',
+  },
+
+  // search styles
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    margin: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    paddingHorizontal: 10,
+  },
+  searchBar: {
+    flex: 1,
+    height: 40,
+    color: '#000',
+  },
+  searchIcon: {
+    marginLeft: 10,
   },
 });
 

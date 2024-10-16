@@ -86,14 +86,14 @@ const ProductCardView = ({item, fetchCartCount}) => {
     console.log(variant, price, name);
     setSelectedVariant(variant);
     setSelectedVariantName(name);
-    setSelectedPrice(parseFloat(price).toFixed(2)); 
-    setTotalPrice((price * quantity).toFixed(2)); 
+    setSelectedPrice(parseFloat(price).toFixed(2));
+    setTotalPrice((price * quantity).toFixed(2));
   };
 
   const handleIncrement = () => {
     setQuantity(prevQuantity => {
       const newQuantity = prevQuantity + 1;
-      setTotalPrice((selectedPrice * newQuantity).toFixed(2)); 
+      setTotalPrice((selectedPrice * newQuantity).toFixed(2));
       return newQuantity;
     });
   };
@@ -101,7 +101,7 @@ const ProductCardView = ({item, fetchCartCount}) => {
   const handleDecrement = () => {
     setQuantity(prevQuantity => {
       const newQuantity = prevQuantity > 1 ? prevQuantity - 1 : 1;
-      setTotalPrice((selectedPrice * newQuantity).toFixed(2)); 
+      setTotalPrice((selectedPrice * newQuantity).toFixed(2));
       return newQuantity;
     });
   };
@@ -115,6 +115,7 @@ const ProductCardView = ({item, fetchCartCount}) => {
         variantName: variantName,
         price: selectedPrice, // Keep the unit price
         quantity: quantity,
+        image: selectedItem.image,
       };
 
       try {
@@ -159,7 +160,9 @@ const ProductCardView = ({item, fetchCartCount}) => {
           <Image source={{uri: item.image}} style={styles.image} />
         </View>
         <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.price}>Price: {parseFloat(item.sellingPrice).toFixed(2)}</Text> 
+        <Text style={styles.price}>
+          Price: {parseFloat(item.sellingPrice).toFixed(2)}
+        </Text>
         <TouchableOpacity style={styles.addBtn} onPress={handleButtonPress}>
           <Text style={styles.btnText}>Add to Cart</Text>
         </TouchableOpacity>
@@ -181,7 +184,7 @@ const ProductCardView = ({item, fetchCartCount}) => {
                     <Text style={styles.modalTitle}>{selectedItem.name}</Text>
                     {selectedItem.variants.length > 0 ? (
                       <ScrollView
-                        horizontal={true}
+                        horizontal
                         contentContainerStyle={styles.variantButtonContainer}>
                         {selectedItem.variants.map((variant, index) => (
                           <TouchableOpacity
@@ -198,7 +201,12 @@ const ProductCardView = ({item, fetchCartCount}) => {
                                 variant.name,
                               )
                             }>
-                            <Text style={styles.variantButtonText}>
+                            <Text
+                              style={[
+                                styles.variantButtonText,
+                                selectedVariant === variant._id &&
+                                  styles.variantButtonTextSelected,
+                              ]}>
                               {variant.name}
                             </Text>
                           </TouchableOpacity>
@@ -212,7 +220,6 @@ const ProductCardView = ({item, fetchCartCount}) => {
 
                     <View style={styles.testContainer}>
                       <View style={styles.quantityContainer}>
-                        <Text style={styles.quantityLabel}>Quantity:</Text>
                         <TouchableOpacity
                           style={styles.quantityButton}
                           onPress={handleDecrement}>
@@ -225,17 +232,15 @@ const ProductCardView = ({item, fetchCartCount}) => {
                           <Text style={styles.quantityButtonText}>+</Text>
                         </TouchableOpacity>
                       </View>
-
-                      <View>
                       <Text style={styles.selectedPrice}>
-                        Total Price: {parseFloat(totalPrice).toFixed(2)}
+                        Total: {parseFloat(totalPrice).toFixed(2)}
                       </Text>
-                      </View>
                     </View>
                   </>
                 )}
-
-                <TouchableOpacity style={styles.addBtn} onPress={handleConfirm}>
+                <TouchableOpacity
+                  style={styles.addBtn}
+                  onPress={handleConfirm}>
                   <Text style={styles.btnText}>Confirm</Text>
                 </TouchableOpacity>
               </Animated.View>
@@ -250,40 +255,35 @@ const ProductCardView = ({item, fetchCartCount}) => {
 const styles = StyleSheet.create({
   item: {
     margin: 10,
-    marginRight: 2,
-    padding: 5,
+    padding: 10,
     backgroundColor: '#fff',
-    borderRadius: 5,
+    borderRadius: 10,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
-    width: 163,
+    width: 160,
   },
   image: {
     width: '100%',
-    height: '100%',
+    height: 100,
     resizeMode: 'contain',
-    borderRadius: 5,
+    borderRadius: 10,
   },
-
   imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
-    height: 150,
-    borderRadius: 5,
-    overflow: 'hidden',
+    marginBottom: 10,
   },
   name: {
     color: '#000',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginVertical: 5,
+    marginBottom: 5,
   },
   price: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#888',
     marginBottom: 10,
   },
@@ -315,12 +315,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0e0e0',
     borderRadius: 5,
     marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   variantButtonSelected: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#FF5733',
   },
   variantButtonText: {
     color: '#000',
+  },
+  variantButtonTextSelected: {
+    color: '#fff', // Change the text color when selected
   },
   noVariants: {
     fontSize: 16,
@@ -332,30 +337,54 @@ const styles = StyleSheet.create({
   },
   quantityLabel: {
     fontSize: 16,
-    marginRight: 10,
   },
   quantityButton: {
-    backgroundColor: '#007BFF',
+    borderWidth: 2,
+    borderColor: '#A9A9A9',
     borderRadius: 5,
-    padding: 10,
+    border: '#A9A9A9',
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginHorizontal: 5,
   },
   quantityButtonText: {
-    color: '#fff',
+    color: '#A9A9A9',
     fontSize: 18,
   },
   quantity: {
     fontSize: 18,
     marginHorizontal: 10,
-    color: 'red',
+    color: '#A9A9A9',
   },
   selectedPrice: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: 'red',
+    color: 'green',
   },
   addBtn: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#FF5733',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  btnText: {
+    color: '#fff',
+    fontSize: 18,
+  },
+
+  testContainer: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  addBtn: {
+    backgroundColor: '#FF5733',
     padding: 10,
     borderRadius: 5,
     alignItems: 'center',

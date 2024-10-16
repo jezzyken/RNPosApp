@@ -4,11 +4,14 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  Button,
   TouchableOpacity,
+  SafeAreaView,
+  Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useNavigation} from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+
 const CartScreen = () => {
   const [cartItems, setCartItems] = useState([]);
   const navigation = useNavigation();
@@ -20,7 +23,6 @@ const CartScreen = () => {
   const loadCartItems = async () => {
     try {
       const jsonValue = await AsyncStorage.getItem('@cart_items');
-      console.log(jsonValue)
       if (jsonValue !== null) {
         setCartItems(JSON.parse(jsonValue));
       }
@@ -32,7 +34,6 @@ const CartScreen = () => {
   const clearCart = async () => {
     try {
       await AsyncStorage.removeItem('@cart_items');
-      console.log('Cart cleared');
       setCartItems([]);
     } catch (error) {
       console.error('Error clearing cart:', error);
@@ -40,101 +41,195 @@ const CartScreen = () => {
   };
 
   const calculateTotalPrice = () => {
-    let totalPrice = 0;
-    cartItems.forEach(item => {
-      totalPrice += item.price * item.quantity;
-    });
-    return totalPrice;
+    return cartItems
+      .reduce((total, item) => total + item.price * item.quantity, 0)
   };
 
   const renderItem = ({item}) => (
     <View style={styles.cartItem}>
-      <Text style={styles.items}>
-        {item.variant ? `${item.name} (${item.variantName})` : item.name}
-      </Text>
-      <Text style={styles.items}>Price per item: {item.price}</Text>
-      <Text style={styles.items}>Quantity: {item.quantity}</Text>
-      <Text style={styles.items}>Subtotal: {item.price * item.quantity}</Text>
+      <Image source={{uri: item.image}} style={styles.itemImage} />
+      <View style={styles.itemInfo}>
+        <Text style={styles.itemName}>
+          {item.variant ? `${item.name} (${item.variantName})` : item.name}
+        </Text>
+        <Text style={styles.itemPrice}>₱{item.price}</Text>
+        <View style={styles.quantityContainer}>
+          <TouchableOpacity style={styles.quantityBtn}>
+            <Icon name="remove" size={20} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.quantityText}>{item.quantity}</Text>
+          <TouchableOpacity style={styles.quantityBtn}>
+            <Icon name="add" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      </View>
+      <TouchableOpacity style={styles.removeBtn}>
+        <Icon name="delete-outline" size={24} color="#FF6B6B" />
+      </TouchableOpacity>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.addBtn} onPress={clearCart}>
-        <Text style={styles.btnText}>Clear Cart</Text>
-      </TouchableOpacity>
-
-      <FlatList
-        data={cartItems}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.cartList}
-      />
-      <Text style={styles.totalPrice}>
-        Total Price: Php {calculateTotalPrice()}
-      </Text>
-
-      <TouchableOpacity style={styles.addBtn}   onPress={() =>
-          navigation.navigate('Confirmation', {
-            cartItems: JSON.stringify(cartItems),
-            totalPrice: calculateTotalPrice(),
-          })
-        }>
-        <Text style={styles.btnText}>proceed</Text>
-      </TouchableOpacity>
-
-
-    </View>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>Your Cart</Text>
+      {cartItems.length === 0 ? (
+        <View style={styles.emptyCart}>
+          <Icon name="shopping-cart" size={80} color="#ccc" />
+          <Text style={styles.emptyCartText}>Your cart is empty</Text>
+        </View>
+      ) : (
+        <>
+          <FlatList
+            data={cartItems}
+            renderItem={renderItem}
+            keyExtractor={(item, index) => index.toString()}
+            contentContainerStyle={styles.cartList}
+          />
+          <View style={styles.totalContainer}>
+            <Text style={styles.totalLabel}>Total:</Text>
+            <Text style={styles.totalPrice}>₱{calculateTotalPrice()}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.checkoutBtn}
+            onPress={() =>
+              navigation.navigate('Confirmation', {
+                cartItems: JSON.stringify(cartItems),
+                totalPrice: calculateTotalPrice(),
+              })
+            }>
+            <Text style={styles.btnText}>Proceed to Checkout</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.clearBtn} onPress={clearCart}>
+            <Text style={styles.clearBtnText}>Clear Cart</Text>
+          </TouchableOpacity>
+        </>
+      )}
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f8f9fa',
     padding: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
+    color: '#343a40',
     marginBottom: 20,
   },
   cartList: {
     flexGrow: 1,
   },
   cartItem: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
-    marginTop: 10,
-    color: 'red',
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 15,
+    marginBottom: 15,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  items: {
-    color: '#000',
+  itemImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 10,
+    marginRight: 15,
+  },
+  itemInfo: {
+    flex: 1,
+  },
+  itemName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#343a40',
+    marginBottom: 5,
+  },
+  itemPrice: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#495057',
+    marginBottom: 5,
+  },
+  quantityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  quantityBtn: {
+    backgroundColor: '#FF5733',
+    borderRadius: 15,
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quantityText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginHorizontal: 10,
+    color: '#343a40',
+  },
+  removeBtn: {
+    padding: 5,
+  },
+  totalContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#dee2e6',
+  },
+  totalLabel: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#343a40',
   },
   totalPrice: {
-    color: '#000',
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginTop: 10,
-    marginBottom: 10,
+    color: 'green',
   },
-
-  addBtn: {
-    borderRadius: 8,
-    paddingVertical: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
+  checkoutBtn: {
     backgroundColor: '#FF5733',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 15,
   },
-
   btnText: {
     color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  clearBtn: {
+    borderColor: '#FF6B6B',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  clearBtnText: {
+    color: '#FF6B6B',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  emptyCart: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyCartText: {
+    fontSize: 18,
+    color: '#adb5bd',
+    marginTop: 20,
   },
 });
 

@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
 import axios from 'axios';
+import config from '../config/config';
 
 const useFetch = () => {
   const [data, setData] = useState([]);
@@ -9,10 +10,10 @@ const useFetch = () => {
   const fetchData = async () => {
     setIsLoading(true);
 
+    console.log(`${config.apiUrl}/products`)
+
     try {
-      const response = await axios.get(
-        'http://192.168.1.153:3001/api/v1/node/products',
-      );
+      const response = await axios.get(`${config.apiUrl}/products`);
       setData(response.data.result);
       setIsLoading(false);
     } catch (e) {
